@@ -14,7 +14,13 @@
 
   </head>
   <body>
-    <pre><code class="language-json" id="output"></code></pre>
+    <div id="resultdiv" hidden>
+      <p class="fs-4">
+        Refer <a href="https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml" target="_blank">this</a> and <a target="_blank" href="https://developers.cloudflare.com/1.1.1.1/encryption/dns-over-https/make-api-requests/dns-json/">this</a> to understand returned format
+      </p>
+      <pre><code class="language-json"  id="output"></code></pre>
+    </div>
+
 
     <div id="usage"  hidden>
       <h4>Usage:</h4>
@@ -130,22 +136,31 @@ https://www.iana.org/assignments/dns-parameters/dns-parameters.xhtml
   }
 
   async function begin() {
-    for (let i = 0; i < 270; i++) await printDnsVals(i);
 
-    for (let i = 32765; i < 32780; i++) await printDnsVals(i);
+    let promisesArr = []
 
-    for (let i = 65535; i <= 65535; i++) await printDnsVals(i);
+    for (let i = 0; i < 270; i++) promisesArr.push( printDnsVals(i) )
+
+    for (let i = 32765; i < 32780; i++) promisesArr.push( printDnsVals(i) )
+
+    for (let i = 65535; i <= 65535; i++) promisesArr.push( printDnsVals(i) )
 
     for (let nodeVal of nodes)
-      await printDnsVals(nodeVal["RR Type"], nodeVal["_NODE NAME"] + ".");
+    promisesArr.push( printDnsVals(nodeVal["RR Type"], nodeVal["_NODE NAME"] + ".") )
+      
+    await Promise.allSettled(promisesArr)
 
-    document.querySelector("#output").textContent = JSON.stringify(
+    document.querySelector('#resultdiv').removeAttribute('hidden')
+
+      document.querySelector("#output").textContent = JSON.stringify(
       result,
       null,
       4
     );
 
     hljs.highlightAll();
+
+  
   }
   if (myURL)
   begin()
